@@ -143,8 +143,8 @@ const controls = d3.select("#controls").html(`
 
 
 
-    // Top 30 by rating
-    filtered = filtered.sort((a, b) => d3.descending(a.rank, b.rank)).slice(0, 30);
+    // Top 25 by rating
+    filtered = filtered.sort((a, b) => d3.descending(a.rank, b.rank)).slice(0, 20);
 
     // ---- COLOR SCALE (dynamic with safe guard) ----
 let rMin = d3.min(filtered, d => d.rank);
@@ -269,7 +269,7 @@ const simulation = d3.forceSimulation(filtered)
   .alphaDecay(0.05)
   .force("charge", d3.forceManyBody().strength(1.8)) // gentle push so bubbles don't drift out
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => size(d.price) + 4))
+  .force("collision", d3.forceCollide().radius(d => size(d.price) + 10))
   .force("x", d3.forceX(d => xScale(d.price)).strength(0.4))
   .force("y", d3.forceY(height / 2).strength(0.12))
   .on("tick", ticked);
