@@ -37,3 +37,10 @@
   height: 100%;
   display: block;
 }
+
+/* move the chart slightly to the right to center it better */
+.viz-canvas svg {
+  position: absolute;
+  left: 30px;
+  top: 0;
+}
