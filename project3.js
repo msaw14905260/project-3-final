@@ -243,35 +243,113 @@ const simulation = d3.forceSimulation(filtered)
 
     node.exit().remove();
 
-    // Labels
-    const label = svg.selectAll("text.bubble-label")
-      .data(filtered, d => d.name);
+//     // Labels
+//     const label = svg.selectAll("text.bubble-label")
+//       .data(filtered, d => d.name);
 
-    label.enter()
-      .append("text")
-      .attr("class", "bubble-label")
-      .text(d => d.brand.length > 10 ? d.brand.slice(0, 10) + "…" : d.brand)
-      .attr("font-size", "10px")
-      .attr("text-anchor", "middle")
-      .attr("pointer-events", "none")
-      .merge(label)
-      .transition()
-      .duration(800)
-      .attr("font-size", "10px");
+//     label.enter()
+//       .append("text")
+//       .attr("class", "bubble-label")
+//       .text(d => d.brand.length > 10 ? d.brand.slice(0, 10) + "…" : d.brand)
+//       .attr("font-size", "10px")
+//       .attr("text-anchor", "middle")
+//       .attr("pointer-events", "none")
+//       .merge(label)
+//       .transition()
+//       .duration(800)
+//       .attr("font-size", "10px");
 
-    label.exit().remove();
+//     label.exit().remove();
 
-    function ticked() {
+//     function ticked() {
+//   const maxRadius = d3.max(filtered, d => size(d.price)) || 60;
+
+//   svg.selectAll("circle")
+//     .attr("cx", d => Math.max(maxRadius, Math.min(width - maxRadius, d.x)))
+//     .attr("cy", d => d.y);
+
+//   svg.selectAll(".bubble-label")
+//     .attr("x", d => Math.max(maxRadius, Math.min(width - maxRadius, d.x)))
+//     .attr("y", d => d.y + 3);
+// }
+
+    // ===== FULL BRAND LABELS CENTERED INSIDE THE BUBBLE =====
+const labelG = svg.selectAll("g.brand-label")
+  .data(filtered, d => d.name);
+
+labelG.exit().remove();
+
+const labelGEnter = labelG.enter()
+  .append("g")
+  .attr("class", "brand-label")
+  .attr("pointer-events", "none"); // labels won't block hover
+
+// two layered texts for halo + fill, both centered
+labelGEnter.append("text")
+  .attr("class", "label-halo")
+  .attr("text-anchor", "middle")
+  .attr("dominant-baseline", "middle"); // vertical centering
+
+labelGEnter.append("text")
+  .attr("class", "label-text")
+  .attr("text-anchor", "middle")
+  .attr("dominant-baseline", "middle");
+
+const labelGMerged = labelGEnter.merge(labelG);
+
+// set text and auto-fit font size so it stays inside the circle
+labelGMerged.each(function(d) {
+  const g = d3.select(this);
+  const halo = g.select(".label-halo").text(d.brand);
+  const fill = g.select(".label-text").text(d.brand);
+
+  // available width inside circle (diameter minus a small padding)
+  const maxW = Math.max(0, 2 * size(d.price) - 6);
+
+  // start from a readable size and shrink until it fits or reach min
+  let fs = 12; // starting font size
+  const minFS = 7;
+  halo.attr("font-size", fs);
+  fill.attr("font-size", fs);
+
+  // measure & shrink loop
+  // (need the element in the DOM before measuring)
+  while (fill.node().getComputedTextLength() > maxW && fs > minFS) {
+    fs -= 1;
+    halo.attr("font-size", fs);
+    fill.attr("font-size", fs);
+  }
+});
+
+// ---- ticked(): keep circles and labels centered together ----
+function ticked() {
   const maxRadius = d3.max(filtered, d => size(d.price)) || 60;
 
+  // circles
   svg.selectAll("circle")
     .attr("cx", d => Math.max(maxRadius, Math.min(width - maxRadius, d.x)))
     .attr("cy", d => d.y);
 
-  svg.selectAll(".bubble-label")
-    .attr("x", d => Math.max(maxRadius, Math.min(width - maxRadius, d.x)))
-    .attr("y", d => d.y + 3);
+  // label groups positioned at the bubble center
+  svg.selectAll("g.brand-label")
+    .attr("transform", d => {
+      const cx = Math.max(maxRadius, Math.min(width - maxRadius, d.x));
+      const cy = d.y;
+      return `translate(${cx},${cy})`;
+    });
 }
+
+  labelGMerged.each(function(d) {
+  const g = d3.select(this);
+  const halo = g.select(".label-halo").text(d.brand);
+  const fill = g.select(".label-text").text(d.brand);
+
+  const diameter = 2 * size(d.price);
+  const base = 10 + 0.04 * diameter;        // scale up with bubble size
+  const fs = Math.min(base, 16);            // cap at 16px
+  halo.attr("font-size", fs);
+  fill.attr("font-size", fs);
+});
 
 
     // Price direction arrow axis
