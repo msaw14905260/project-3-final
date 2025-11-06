@@ -137,37 +137,49 @@ let filtered = data.filter(d =>
     // Top 15 by rating
     filtered = filtered.sort((a, b) => d3.descending(a.rank, b.rank)).slice(0, 15);
 
-    // Color scale (dynamic)
-    const minRank = d3.min(filtered, d => d.rank);
-    const maxRank = d3.max(filtered, d => d.rank);
-    const color = d3.scaleSequential(d3.interpolateRdYlGn)
-      .domain([minRank || 0, maxRank || 1]);
+    // ---- COLOR SCALE (dynamic with safe guard) ----
+let rMin = d3.min(filtered, d => d.rank);
+let rMax = d3.max(filtered, d => d.rank);
 
-    // Update gradient stops
-    const stops = gradient.selectAll("stop")
-      .data(d3.ticks(0, 1, 10));
-    stops.enter()
-      .append("stop")
-      .merge(stops)
-      .attr("offset", d => `${d * 100}%`)
-      .attr("stop-color", d => d3.interpolateRdYlGn(d));
-    stops.exit().remove();
+// If min==max (or undefined), widen a bit so we see variation and a valid gradient
+if (!(rMin >= 0) || !(rMax >= 0)) {
+  rMin = 3.0; rMax = 5.0;         // fallback
+} else if (rMin === rMax) {
+  rMin = Math.max(0, rMin - 0.2);
+  rMax = Math.min(5, rMax + 0.2);
+}
 
-    // Update legend numeric labels
-    svg.selectAll(".legend-min, .legend-max").remove();
-    legendGroup.append("text")
-      .attr("class", "legend-min")
-      .attr("x", 0)
-      .attr("y", -2)
-      .attr("font-size", "10px")
-      .text(minRank ? minRank.toFixed(1) : "–");
-    legendGroup.append("text")
-      .attr("class", "legend-max")
-      .attr("x", legendWidth)
-      .attr("y", -2)
-      .attr("font-size", "10px")
-      .attr("text-anchor", "end")
-      .text(maxRank ? maxRank.toFixed(1) : "–");
+const color = d3.scaleSequential(d3.interpolateRdYlGn).domain([rMin, rMax]);
+
+// ---- UPDATE GRADIENT STOPS (keep as is if you already have it) ----
+const stops = gradient.selectAll("stop").data(d3.ticks(0, 1, 10));
+stops.enter().append("stop")
+  .merge(stops)
+  .attr("offset", d => `${d * 100}%`)
+  .attr("stop-color", d => d3.interpolateRdYlGn(d));
+stops.exit().remove();
+
+// ---- UPDATE LEGEND LABELS ----
+svg.selectAll(".legend-min, .legend-max").remove();
+legendGroup.append("text")
+  .attr("class", "legend-min")
+  .attr("x", 0)
+  .attr("y", -2)
+  .attr("font-size", "10px")
+  .text(rMin.toFixed(1));
+legendGroup.append("text")
+  .attr("class", "legend-max")
+  .attr("x", legendWidth)
+  .attr("y", -2)
+  .attr("font-size", "10px")
+  .attr("text-anchor", "end")
+  .text(rMax.toFixed(1));
+
+// ---- APPLY COLOR TO BUBBLES ----
+svg.selectAll("circle")
+  .transition().duration(300)
+  .attr("fill", d => color(d.rank));
+
 
     // Force simulation// --- Dynamic horizontal padding to prevent clipping on both sides ---
 const maxRadius = d3.max(filtered, d => size(d.price)) || 60;
