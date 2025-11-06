@@ -154,13 +154,19 @@
       <section>
         <h2>Interactive Visualization</h2>
 
-        <figure>
+      <figure>
         <div id="controls"></div>
-        <div class="chart-container">
-        <svg id="brand-bubble-chart" preserveAspectRatio="xMidYMid meet"></svg>
+
+        <!-- Scrollable viewport -->
+        <div class="viz-viewport">
+          <!-- Canvas that stays at your design size -->
+          <div class="viz-canvas">
+            <svg id="brand-bubble-chart"></svg>
+          </div>
         </div>
-        <figcaption>Brand-level bubble chart with interactive filters (category, skin type, price) and a price-axis brush.</figcaption>
-        </figure>
+
+        <figcaption>Brand-level bubble chart with interactive filters and a price-axis brush.</figcaption>
+      </figure>
 
       </section>
 

@@ -18,7 +18,7 @@ d3.csv("data/cosmetic_p.csv").then(data => {
     d.Sensitive = +d.Sensitive || 0;
   });
 
-  const width = 1100, height = 720;
+  const width = 1100, height = 750;
 
   const svg = d3.select("#brand-bubble-chart")
     .attr("width", width)
@@ -144,7 +144,7 @@ const controls = d3.select("#controls").html(`
 
 
     // Top 30 by rating
-    filtered = filtered.sort((a, b) => d3.descending(a.rank, b.rank)).slice(0, 30);
+    filtered = filtered.sort((a, b) => d3.descending(a.rank, b.rank)).slice(0, 25);
 
     // ---- COLOR SCALE (dynamic with safe guard) ----
 let rMin = d3.min(filtered, d => d.rank);
