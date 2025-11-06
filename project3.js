@@ -119,6 +119,9 @@ const controls = d3.select("#controls").html(`
     .attr("text-anchor", "middle")
     .text("Rating (relative)");
 
+  // place legend in the center bottom area, make sure its below the axis, push the price axis up a bit 
+  legendGroup.attr("transform", `translate(${(width - legendWidth) / 2}, ${height - 20})`);
+
   // ------------------------------------------------------------
   // UPDATE FUNCTION
   // ------------------------------------------------------------
@@ -204,13 +207,10 @@ const xScale = d3.scaleLinear()
   .range([leftPad, width - rightPad]);
 
   // ---------- FULL-WIDTH PRICE AXIS + ARROW ----------
-const axisY = height - 28; // where the axis sits
+const axisY = height - 80; // where the axis sits
 axisG.attr("transform", `translate(0, ${axisY})`);
 
-const xAxis = d3.axisBottom(xScale)
-  .ticks(8)
-  .tickFormat(d => `$${Math.round(d)}`);
-axisG.call(xAxis);
+
 
 // Direction label
 svg.selectAll(".price-arrow-label").data([1]).join("text")
@@ -220,7 +220,7 @@ svg.selectAll(".price-arrow-label").data([1]).join("text")
   .attr("text-anchor", "middle")
   .attr("font-size", "12px")
   .attr("fill", "#333")
-  .text("Price →");
+  .text("Price");
 
 // Full-width arrow on the axis
 svg.selectAll(".price-axis-line").data([1]).join("line")
@@ -233,25 +233,35 @@ svg.selectAll(".price-axis-line").data([1]).join("line")
   .attr("stroke-width", 2)
   .attr("marker-end", "url(#arrowhead)");
 
-// ---------- INTERACTIVE PRICE BRUSH ----------
-const brush = d3.brushX()
-  .extent([[xScale.range()[0], axisY - 18], [xScale.range()[1], axisY + 18]])
-  .on("end", (event) => {
-    if (!event.selection) {
-      brushRange = null; // cleared
-    } else {
-      const [x0, x1] = event.selection;
-      const p0 = Math.max(0, xScale.invert(x0));
-      const p1 = Math.max(0, xScale.invert(x1));
-      brushRange = [Math.min(p0, p1), Math.max(p0, p1)];
-      d3.select("#priceSlider").property("value", Math.round(brushRange[1]));
-      d3.select("#priceLabel").text(`${Math.round(brushRange[1])}`);
-    }
-    updateChart(); // re-render with new constraint
-  });
+// if we dont want to lock x positions to price, comment out this block
+// ---- LOCK X POSITIONS TO PRICE VALUES ----
 
-brushG.call(brush);
-if (brushRange) brushG.call(brush.move, [xScale(brushRange[0]), xScale(brushRange[1])]);
+filtered.forEach(d => {
+  d.fx = xScale(d.price);           // exact x at price
+  if (!isFinite(d.y)) d.y = height / 2;
+});
+
+function ticked() {
+  const [x0, x1] = xScale.range();
+  const clampX = x => Math.max(x0, Math.min(x1, x));
+
+  svg.selectAll("circle")
+    .attr("cx", d => clampX(d.fx))
+    .attr("cy", d => d.y); // keep your Y clamp if you use one
+
+  svg.selectAll("g.brand-label")
+    .attr("transform", d => `translate(${clampX(d.fx)},${d.y})`);
+}
+
+// axis generator
+const xAxis = d3.axisBottom(xScale)
+  .ticks(6)
+  .tickFormat(d3.format("$~s"));
+
+// render axis
+axisG.call(xAxis);
+
+// up to here for axis
 
 
 // --- Force simulation (balanced + constrained layout) ---
