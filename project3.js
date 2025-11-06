@@ -144,7 +144,7 @@ const controls = d3.select("#controls").html(`
 
 
     // Top 30 by rating
-    filtered = filtered.sort((a, b) => d3.descending(a.rank, b.rank)).slice(0, 25);
+    filtered = filtered.sort((a, b) => d3.descending(a.rank, b.rank)).slice(0, 30);
 
     // ---- COLOR SCALE (dynamic with safe guard) ----
 let rMin = d3.min(filtered, d => d.rank);
