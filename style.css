@@ -20,13 +20,13 @@
   max-height: 90vh;          /* how tall the box can be */
   border: 1px solid #ddd;
   border-radius: 8px;
-  overflow: auto;            /* <-- enables both scrollbars */
+  overflow: visible;            /* <-- enables both scrollbars */
   background: #fff;
 }
 
 /* The inner canvas holds your full chart size */
 .viz-canvas {
-  width: 1100px;             /* your design width */
+  width: 1400px;             /* your design width */
   height: 770px;             /* your design height */
   position: relative;
 }
@@ -41,6 +41,6 @@
 /* move the chart slightly to the right to center it better */
 .viz-canvas svg {
   position: absolute;
-  left: 30px;
+  left: 0;
   top: 0;
 }
