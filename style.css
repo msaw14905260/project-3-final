@@ -27,7 +27,7 @@
 /* The inner canvas holds your full chart size */
 .viz-canvas {
   width: 1100px;             /* your design width */
-  height: 6800px;             /* your design height */
+  height: 680px;             /* your design height */
   position: relative;
 }
 
